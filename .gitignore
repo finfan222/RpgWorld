@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+/.vs/ConsoleApplication1/FileContentIndex
+/x64
+/.vs/RpgWorld/v17
