@@ -5,7 +5,6 @@
 #include "NetworkService.h"
 #include "ResourceManager.h"
 
-
 class WndLogin : public WndBasic
 {
 private:
@@ -21,6 +20,7 @@ public:
     ~WndLogin();
     CString title();
     void open(void(*Exit)()) override;
+    void close() override;
     void redraw() override;
     void init() override;
 };

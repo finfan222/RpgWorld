@@ -22,6 +22,9 @@ static unique_ptr<sf::Clock> MainSceneDelta = make_unique<sf::Clock>();
 
 /////////////////////// SCENES
 static unique_ptr<GameScene> MainScene = make_unique<GameScene>(sf::VideoMode(conf::WINDOW_RESOLUTION[0], conf::WINDOW_RESOLUTION[1]), GAME_NAME);
+
+/////////////////////// GUI WINDOWS
+static unique_ptr<WndBasic> MainWindow = make_unique<WndBasic>(MainScene.get(), "Main Window");
 static unique_ptr<WndLogin> LoginWindow = make_unique<WndLogin>(NetService, MainScene.get(), ID_LOGIN_AREA, 192, 96);
 static unique_ptr<WndInventory> InventoryWindow = make_unique<WndInventory>(MainScene.get(), 12);
 
@@ -84,6 +87,16 @@ void f(bool* p_open) {
 /////////////////////// Main Loop
 int main()
 {
+    /*
+    logging by boost
+    BOOST_LOG_TRIVIAL(trace) << "A trace severity message";
+    BOOST_LOG_TRIVIAL(debug) << "A debug severity message";
+    BOOST_LOG_TRIVIAL(info) << "An informational severity message";
+    BOOST_LOG_TRIVIAL(warning) << "A warning severity message";
+    BOOST_LOG_TRIVIAL(error) << "An error severity message";
+    BOOST_LOG_TRIVIAL(fatal) << "A fatal severity message";
+    */
+    MainWindow->addChild(LoginWindow.get());
     ImGui::SFML::Init(*MainScene);
     static bool show_app_long_text = false;
     Item i1(0, 1, "NewItem1");
@@ -106,6 +119,7 @@ int main()
 
     RESOURCE_MANAGER_API.loadImages(MainScene.get());
     RESOURCE_MANAGER_API.loadMusic();
+    RESOURCE_MANAGER_API.loadSounds();
 
     LoginWindow->init();
     
@@ -156,11 +170,12 @@ void Exit() {
     try {
         NetService.tryDisconnect();
         ImGui::SFML::Shutdown();
+        LoginWindow->close();
         MainScene->close();
         MainScene.release();
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
     catch (exception e) {
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 }

@@ -62,7 +62,7 @@ public:
 	virtual void playTheme();
 	Boolean isThemePlaying();
 	virtual void stopTheme();
-
+	void addChild(WndBasic* wnd);
 };
 
 #endif // !WND_BASIC_HPP

@@ -1,9 +1,16 @@
 #include "WndBasic.h"
 
 WndBasic::WndBasic(GameScene* scene, String name, UShort width, UShort height, Boolean isShown)
-	: scene(scene), name(name), width(width), height(height), isShown(isShown)
+	: scene(scene), name(name), width(width), height(height),
+	isShown(isShown), background(nullptr), theme(nullptr)
 {
-	cout << name << ": " << width << "x" << height << " is shown: " << isShown << endl;
+	logging::print(LogLevel::Debug, "WndBasic::WndBasic", 7,
+		name, ": ",
+		to_string(width),
+		"x",
+		to_string(height),
+		" is shown: ",
+		to_string(isShown));
 }
 
 WndBasic::~WndBasic()
@@ -104,6 +111,11 @@ void WndBasic::stopTheme()
 		return;
 	}
 	theme->music->stop();
+}
+
+void WndBasic::addChild(WndBasic* wnd)
+{
+	childs.push_back(*wnd);
 }
 
 void WndBasic::playTheme()

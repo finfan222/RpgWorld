@@ -1,6 +1,12 @@
 enum class LogLevel {
 	Debug,
-	Error
+	Error,
+	Warning
+};
+
+enum class Lang {
+	RU,
+	EN
 };
 
 enum class ItemModification {

@@ -143,7 +143,7 @@ String& SFMLImageData::getName()
 
 void SFMLImageData::update()
 {
-	cout << "update image..." << *name << endl;
+	logging::print(LogLevel::Debug, "SFMLImageData::update()", 3, "Image '", name->c_str(), "' updated.");
 	sf::Vector2u vec = scene->getSize();
 	sf::Vector2u vec2 = texture->getSize();
 	Float x1 = static_cast<float>(vec.x) / static_cast<float>(vec2.x);
@@ -181,6 +181,11 @@ Boolean SFMLMusicData::is(MusicStatus status)
 	return music->getStatus() == status;
 }
 
+void SFMLMusicData::update()
+{
+	music->setVolume(conf::MUSIC_VOLUME);
+}
+
 SFMLSoundData::SFMLSoundData(String fullPath)
 {
 	// проверяем расширение
@@ -204,4 +209,94 @@ SFMLSoundData::~SFMLSoundData()
 String& SFMLSoundData::getName()
 {
 	return *name;
+}
+
+void SFMLSoundData::play()
+{
+	try {
+		sound->play();
+	}
+	catch (exception e) {
+		cerr << e.what() << endl;
+	}
+}
+
+void SFMLSoundData::update()
+{
+	sound->setVolume(conf::SOUND_VOLUME);
+}
+
+Boolean gui::button(CString title, ImVec2 size)
+{
+	if (ImGui::Button(title, size)) {
+		RESOURCE_MANAGER_API.getSound("click").value().play();
+		return true;
+	}
+	return false;
+}
+
+void logging::print(LogLevel level, CString from, UInt cnt, ...)
+{
+	try {
+		String output = "";
+		if (level == LogLevel::Error) {
+			output.append("ERROR ");
+		}
+		else if (level == LogLevel::Warning) {
+			output.append("WARNING ");
+		}
+		else {
+			output.append("DEBUG ");
+		}
+
+		time_t t = time(nullptr);
+		String format(20, 0);
+		format.resize(strftime(&format[0], format.size(), "%d.%m.%Y %I:%M:%S", localtime(&t)));
+		output.append(format).append(" ");
+
+		// откуда (класс или функция)
+		output.append(from).append(": ");
+
+		va_list args;
+		va_start(args, cnt);
+		for (int i = 0; i < cnt; i++) {
+			const char* t = va_arg(args, const char*);
+			output.append(String(t));
+		}
+		va_end(args);
+
+		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+		if (level == LogLevel::Error) {
+			SetConsoleTextAttribute(hConsole, 12);
+			cerr << output << endl;
+			SetConsoleTextAttribute(hConsole, 7);
+		}
+		else if (level == LogLevel::Warning) {
+			SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN);
+			cerr << output << endl;
+			SetConsoleTextAttribute(hConsole, 7);
+		}
+		else {
+			SetConsoleTextAttribute(hConsole, 2);
+			cout << output << endl;
+			SetConsoleTextAttribute(hConsole, 7);
+		}
+	}
+	catch (exception e) {
+		logging::print(e);
+	}
+}
+
+void logging::print(exception e)
+{
+	String output = "ERROR ";
+	time_t t = time(nullptr);
+	String format(20, 0);
+	format.resize(strftime(&format[0], format.size(), "%d.%m.%Y %I:%M:%S", localtime(&t)));
+	output.append(format).append(" ");
+	output.append(e.what());
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, 12);
+	cerr << output << endl;
+	SetConsoleTextAttribute(hConsole, 7);
 }

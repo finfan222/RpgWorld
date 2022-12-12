@@ -55,41 +55,43 @@ void WndLogin::createButtonArea(void(*Exit)())
         ImGui::Indent(20);
         ImGui::TableNextRow();
         {
-            static ImVec2 ButtonSize(64, 21);
-            {
-                // button Log-In
-                if (ImGui::TableSetColumnIndex(0)) {
-                    if (ImGui::Button("Log-In", ButtonSize)) {
-                        RequestLogin info;
-                        info.login = InputLoginTextBuffer;
-                        info.password = InputPasswordTextBuffer;
-                        if (!info.validate()) {
-                            cerr << "Wrong login or password info, try again!" << endl;
-                            return;
-                        }
-                        cout << "Send to server: " << endl;
-                        cout << "> login=" << info.login << endl;
-                        cout << "> password=" << info.password << endl;
-                        if (network.tryConnect()) {
-                            // fixme: test connect
-                            VersionRequest test;
-                            test.version = 1;
-                            sendPacket(test);
-                            receivePacket();
-                        }
-                        else {
-                            cout << "Connection error." << endl;
-                        }
-
+            CString LogInTitle = "Log-In";
+            CString ExitTitle = "Exit";
+            const ImVec2 ButtonSize(64, 21);
+            // button Log-In
+            if (ImGui::TableSetColumnIndex(0)) {
+                if (gui::button(LogInTitle, ButtonSize)) {
+                    RequestLogin info;
+                    info.login = InputLoginTextBuffer;
+                    info.password = InputPasswordTextBuffer;
+                    if (!info.validate()) {
+                        cerr << "Wrong login or password info, try again!" << endl;
+                        return;
                     }
+
+                    logging::print(LogLevel::Debug, "WndLogin::createButtonArea",  5,
+                        "Sending to server: ", types::name(info).append(" "),
+                        info.login, "/", info.password);
+
+                    if (network.tryConnect()) {
+                        // fixme: test connect
+                        VersionRequest test;
+                        test.version = 1;
+                        sendPacket(test);
+                        receivePacket();
+                    }
+                    else {
+                        logging::print(LogLevel::Error, "WndLogin::createButtonArea", 1, "Connection error.");
+                    }
+
                 }
+            }
 
-                // button Exit
-                if (ImGui::TableSetColumnIndex(1)) {
-                    if (ImGui::Button("Exit", ButtonSize)) {
-                        // on exit game?
-                        Exit();
-                    }
+            // button Exit
+            if (ImGui::TableSetColumnIndex(1)) {
+                if (gui::button(ExitTitle, ButtonSize)) {
+                    // on exit game?
+                    Exit();
                 }
             }
         }
@@ -128,26 +130,34 @@ void WndLogin::open(void(*Exit)())
         | wndflag::Untitle
         | wndflag::Unmove)) {
 
-            ////////////////////////// LOGIN AREA
-            {
-                // set new UI area window size
-                ImGui::SetWindowSize(ImVec2(width, height));
-                sf::Vector2u sceneSize = scene->getSize();
-                float wndX = static_cast<float>(sceneSize.x);
-                float wndY = static_cast<float>(sceneSize.y);
-                float centerX = (wndX / 2) - (width / 2);
-                float centerY = (wndY / 2) - (height / 2);
-                ImGui::SetWindowPos(ImVec2(centerX, centerY));
+        ////////////////////////// LOGIN AREA
+        {
+            // set new UI area window size
+            ImGui::SetWindowSize(ImVec2(width, height));
+            sf::Vector2u sceneSize = scene->getSize();
+            float wndX = static_cast<float>(sceneSize.x);
+            float wndY = static_cast<float>(sceneSize.y);
+            float centerX = (wndX / 2) - (width / 2);
+            float centerY = (wndY / 2) - (height / 2);
+            ImGui::SetWindowPos(ImVec2(centerX, centerY));
 
-                ////////////////////////// INPUT TABLE
-                createInputArea();
+            ////////////////////////// INPUT TABLE
+            createInputArea();
 
-                ////////////////////////// UTILS
-                ImGui::Spacing();
+            ////////////////////////// UTILS
+            ImGui::Spacing();
 
-                ////////////////////////// BUTTONS TABLE
-                createButtonArea(Exit);
-            }
-            ImGui::End();
+            ////////////////////////// BUTTONS TABLE
+            createButtonArea(Exit);
+        }
+        ImGui::End();
+    }
+}
+
+void WndLogin::close()
+{
+    WndBasic::close();
+    if (theme->is(MusicStatus::Playing)) {
+        theme->music->stop();
     }
 }

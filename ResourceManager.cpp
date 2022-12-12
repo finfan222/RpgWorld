@@ -27,7 +27,8 @@ void ResourceManager::addImage(SFMLImageData* newData)
 
 	// првоеряем на нахождение в памяти
 	if (path.empty() || name.empty()) {
-		cerr << "Wrong path or name." << endl;
+		logging::print(LogLevel::Warning, "ResourceManager::addImage(SFMLImageData* newData)", 5,
+			"Can't add file: to the storage cause name or path is empty.", " Name/Path: ", name.c_str(), "/", path.c_str());
 		return;
 	}
 
@@ -37,7 +38,8 @@ void ResourceManager::addImage(SFMLImageData* newData)
 		for (it = imageStorage.begin(); it != imageStorage.end(); it++) {
 			SFMLImageData* data = *it;
 			if (strex::equalsIgnoreCase(data->getName(), name)) {
-				cerr << "Image file with name '" << name << "' already exists in storage." << endl;
+				logging::print(LogLevel::Warning, "ResourceManager::addImage(SFMLImageData* newData)", 3,
+					"File with that name: ", name.c_str(), " already exists in storage. Will not be loaded.");
 				return;
 			}
 		}
@@ -49,22 +51,23 @@ void ResourceManager::addImage(SFMLImageData* newData)
 	sf::Sprite& sprite = *newData->sprite;
 
 	// загрузка текстуры из файла и установка её в спрайт
-	cout << "Loading image from path: " << path << endl;
+	logging::print(LogLevel::Debug, "ResourceManager::addImage(SFMLImageData* newData)", 3,
+		"Loading sprite-texture from '", path.c_str(), "'.");
 	if (!texture.loadFromFile(path)) {
-		cerr << "Image file '" << path << "' not found!" << endl;
-		throw new exception("ResourceManager loading resource error.");
+		throw new exception("ResourceManager loading sprite-texture resource error.");
 	}
 	sprite.setTexture(texture);
 
-	cout << "Image file: " << name << endl;
 	imageStorage.push_back(newData);
-	cout << "Image '" << name << "' was added." << endl;
+	logging::print(LogLevel::Debug, "ResourceManager::addImage(SFMLImageData* newData)", 3,
+		"SpriteTexture '", name.c_str(), "' was loaded.");
 
 	// трансформируем картинку в зависимости от размера окна если она имеет префикс BG
 	const Boolean is_background = strex::startsWith(name, "bg");
 	if (is_background) {
 		newData->update();
-		cout << name << " was transformed to new size (windowed size)." << endl;
+		logging::print(LogLevel::Debug, "ResourceManager::addImage(SFMLImageData* newData)", 3,
+			"SpriteTexture '", name.c_str(), "' was updated for user resolution.");
 	}
 }
 
@@ -73,9 +76,10 @@ void ResourceManager::addMusic(SFMLMusicData* newData)
 	String& path = *newData->path;
 	String& name = *newData->name;
 	
-	// првоеряем на нахождение в памяти
+	// имя или путь пустые
 	if (path.empty() || name.empty()) {
-		cerr << "Wrong path or name." << endl;
+		logging::print(LogLevel::Warning, "ResourceManager::addMusic(SFMLMusicData* newData)", 5,
+			"Can't add file: to the storage cause name or path is empty.", " Name/Path: ", name.c_str(), "/", path.c_str());
 		return;
 	}
 
@@ -85,7 +89,8 @@ void ResourceManager::addMusic(SFMLMusicData* newData)
 		for (it = musicStorage.begin(); it != musicStorage.end(); it++) {
 			SFMLMusicData* data = *it;
 			if (strex::equalsIgnoreCase(data->getName(), name)) {
-				cerr << "Music file with name '" << name << "' already exists in storage." << endl;
+				logging::print(LogLevel::Warning, "ResourceManager::addMusic(SFMLMusicData* newData)", 3,
+					"File with that name: ", name.c_str(), " already exists in storage. Will not be loaded.");
 				return;
 			}
 		}
@@ -95,21 +100,66 @@ void ResourceManager::addMusic(SFMLMusicData* newData)
 	sf::Music& music = *newData->music;
 
 	// загрузка текстуры из файла и установка её в спрайт
-	cout << "Loading music from path: " << path << endl;
+	logging::print(LogLevel::Debug, "ResourceManager::addMusic(SFMLMusicData* newData)", 2, "Loading music from path: ", path.c_str());
 	if (!music.openFromFile(path)) {
-		cerr << "Music file '" << path << "' not found!" << endl;
-		throw new exception("ResourceManager loading resource error.");
+		throw new exception("ResourceManager loading music resource error.");
 	}
 
-	cout << "Music file name: " << name << endl;
+	// применяем настройки для музыки
+	newData->update();
+
 	musicStorage.push_back(newData);
-	cout << "Music '" << name << "' was added." << endl;
+	logging::print(LogLevel::Debug, "ResourceManager::addMusic(SFMLMusicData* newData)", 3, "Music file name: ", name.c_str(), " was loaded.");
 
 	// если музыка бгшная то всегда делаем её цикличной
 	const Boolean is_background = strex::startsWith(name, "bg");
 	if (is_background) {
 		newData->music->setLoop(true);
+		logging::print(LogLevel::Debug, "ResourceManager::addMusic(SFMLMusicData* newData)", 3, "Music file '", name.c_str(), "' was setLoop=>true (cause background)");
 	}
+}
+
+void ResourceManager::addSound(SFMLSoundData* newData)
+{
+	String& path = *newData->path;
+	String& name = *newData->name;
+
+	// имя или путь пустые
+	if (path.empty() || name.empty()) {
+		logging::print(LogLevel::Warning, "ResourceManager::addSound(SFMLSoundData* newData)", 5,
+			"Can't add file: to the storage cause name or path is empty.", " Name/Path: ", name.c_str(), "/", path.c_str());
+		return;
+	}
+
+	// проверяем на уже существующие fileName (не басолютные)
+	if (!soundStorage.empty()) {
+		vector<SFMLSoundData*>::iterator it;
+		for (it = soundStorage.begin(); it != soundStorage.end(); it++) {
+			SFMLSoundData* data = *it;
+			if (strex::equalsIgnoreCase(data->getName(), name)) {
+				logging::print(LogLevel::Warning, "ResourceManager::addSound(SFMLSoundData* newData)", 3,
+					"File with that name: ", name.c_str(), " already exists in storage. Will not be loaded.");
+				return;
+			}
+		}
+	}
+
+	newData->sound = new sf::Sound();
+	newData->buffer = new sf::SoundBuffer();
+	sf::Sound& sound = *newData->sound;
+	sf::SoundBuffer& buffer = *newData->buffer;
+
+	// применяем настройки для звука
+	newData->update();
+
+	// загрузка текстуры из файла и установка её в спрайт
+	logging::print(LogLevel::Debug, "ResourceManager::addSound(SFMLSoundData* newData)", 2, "Loading sounds from path: ", path.c_str());
+	if (!buffer.loadFromFile(path)) {
+		throw new exception("ResourceManager loading sound resource error.");
+	}
+	sound.setBuffer(buffer);
+	soundStorage.push_back(newData);
+	logging::print(LogLevel::Debug, "ResourceManager::addSound(SFMLSoundData* newData)", 3, "Sound file name: ", name.c_str(), " was loaded.");
 }
 
 boost::optional<SFMLImageData&> ResourceManager::getImage(String name)
@@ -117,11 +167,15 @@ boost::optional<SFMLImageData&> ResourceManager::getImage(String name)
 	for (int i = 0; i < imageStorage.size(); i++) {
 		SFMLImageData* next = imageStorage[i];
 		if (next == nullptr) {
-			cerr << "index " << i << " has nullptr." << endl;
-		} else if(strex::equalsIgnoreCase(next->getName(), name)) {
+			logging::print(LogLevel::Warning, "ResourceManager::getImage", 1, "SFMLImageData in imageStorage (foreach) has nullptr.");
+			continue;
+		}
+		
+		if(strex::equalsIgnoreCase(next->getName(), name)) {
 			return *next;
 		}
 	}
+	logging::print(LogLevel::Warning, "ResourceManager::getImage", 1, "ResourceManager::getImage Nothing to return < boost return ::none");
 	return boost::none;
 }
 
@@ -130,12 +184,33 @@ boost::optional<SFMLMusicData&> ResourceManager::getMusic(String name)
 	for (int i = 0; i < musicStorage.size(); i++) {
 		SFMLMusicData* next = musicStorage[i];
 		if (next == nullptr) {
-			cerr << "index " << i << " has nullptr." << endl;
+			logging::print(LogLevel::Warning, "ResourceManager::getMusic", 1, "SFMLMusicData in musicStorage (foreach) has nullptr.");
+			continue;
 		}
-		else if (strex::equalsIgnoreCase(next->getName(), name)) {
+
+		if (strex::equalsIgnoreCase(next->getName(), name)) {
 			return *next;
 		}
 	}
+	logging::print(LogLevel::Warning, "ResourceManager::getMusic", 1, "ResourceManager::getMusic Nothing to return < boost return ::none");
+	return boost::none;
+}
+
+boost::optional<SFMLSoundData&> ResourceManager::getSound(String name)
+{
+	for (int i = 0; i < soundStorage.size(); i++) {
+		SFMLSoundData* next = soundStorage[i];
+		if (next == nullptr) {
+			logging::print(LogLevel::Warning, "ResourceManager::getSound", 1, "SFMLSoundData in soundStorage (foreach) has nullptr.");
+			continue;
+		}
+		
+		if (strex::equalsIgnoreCase(next->getName(), name)) {
+			return *next;
+		}
+	}
+
+	logging::print(LogLevel::Warning, "ResourceManager::getSound", 1, "ResourceManager::getSound Nothing to return < boost return ::none");
 	return boost::none;
 }
 
@@ -147,7 +222,7 @@ void ResourceManager::loadImages(GameScene* scene)
 		}
 	}
 	catch (exception e) {
-		cerr << "ErrorImageLoading: " << e.what() << endl;
+		logging::print(e);
 	}
 }
 
@@ -159,7 +234,19 @@ void ResourceManager::loadMusic()
 		}
 	}
 	catch (exception e) {
-		cerr << "ErrorMusicLoading: " << e.what() << endl;
+		logging::print(e);
+	}
+}
+
+void ResourceManager::loadSounds()
+{
+	try {
+		for (const auto& next : boost::filesystem::directory_iterator("./sounds/")) {
+			RESOURCE_MANAGER_API.addSound(new SFMLSoundData(next.path().string()));
+		}
+	}
+	catch (exception e) {
+		logging::print(e);
 	}
 }
 

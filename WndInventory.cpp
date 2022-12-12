@@ -72,7 +72,10 @@ UInt WndInventory::capacity(Boolean max) const
 Boolean WndInventory::add(Item& item)
 {
     items.push_back(item);
-    cout << "Item " << item.getId() << " was added to inventory." << endl;
+    logging::print(LogLevel::Debug, "WndInventory::add(Item& item)", 3,
+        "Item ",
+        to_string(item.getId()),
+        " was added to inventory.");
     return true;
 }
 
@@ -83,12 +86,12 @@ Boolean WndInventory::remove(Item& item)
         Item& next = *iter;
         if (item.getUid() == next.getUid()) {
             items.erase(iter);
-            cout << "Item founded and was removed from inventory." << endl;
+            logging::print(LogLevel::Debug, "WndInventory::remove(Item& item)", 1, "Item founded and was removed from inventory.");
             return true;
         }
     }
 
-    cerr << "Item NOT founded and can't be removed." << endl;
+    logging::print(LogLevel::Warning, "WndInventory::remove(Item& item)", 1, "Item NOT founded and can't be removed.");
     return false;
 }
 
@@ -98,7 +101,7 @@ Boolean WndInventory::remove(const UInt uid)
     for (Item& next : items) {
         if (next.getId() == uid) {
             removable = &next;
-            cout << "Removable item found in items." << endl;
+            logging::print(LogLevel::Debug, "WndInventory::remove(const UInt uid)", 1, "Removable item found in items.");
             break;
         }
     }
@@ -107,7 +110,7 @@ Boolean WndInventory::remove(const UInt uid)
         return remove(*removable);
     }
 
-    cout << "Removable item not found in items." << endl;
+    logging::print(LogLevel::Warning, "WndInventory::remove(const UInt uid)", 1, "Removable item not found in items.");
     return false;
 }
 

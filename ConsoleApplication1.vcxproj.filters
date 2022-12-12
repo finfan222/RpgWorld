@@ -29,9 +29,6 @@
     <Filter Include="source\ui\game">
       <UniqueIdentifier>{7249273e-6fd8-46b0-81b9-40c201a33cb6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\log">
-      <UniqueIdentifier>{44285323-5a7e-4072-a1de-072d385c8205}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game.h">
@@ -75,9 +72,6 @@
     </ClCompile>
     <ClCompile Include="ResourceManager.cpp">
       <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="Logger.cpp">
-      <Filter>source\log</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -136,9 +130,6 @@
       <Filter>source</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="Logger.h">
-      <Filter>source\log</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="dll\openal32.dll">

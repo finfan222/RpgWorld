@@ -1,6 +1,11 @@
 #ifndef SYSTEM_HPP
 #define SYSTEM_HPP
 
+// need for boost logging
+#define  _WIN32_WINNT   0x0601
+
+#include <SDKDDKVer.h>
+
 // System imports
 #include <iostream>
 #include <fstream>
@@ -8,7 +13,8 @@
 #include <string>
 #include <math.h>
 #include <cstdlib>
-#include <ctime>
+#include <chrono>
+#include <ctime> 
 #include <map>
 #include <vector>
 #include <type_traits>
@@ -28,6 +34,8 @@
 #include <boost/container/list.hpp>
 #include <boost/optional.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/stacktrace.hpp>
+#include <boost/log/trivial.hpp>
 
 // SFML imports
 #include <SFML/Graphics.hpp>
@@ -110,23 +118,35 @@ template <typename E> constexpr auto cast(E e) noexcept {
 	return static_cast<std::underlying_type_t<E>>(e);
 }
 
-/////////////////////// NAMESPACES
-namespace conf {
-	static UShort* WINDOW_RESOLUTION = WindowResolutions[1];
-	static String LANGUAGE = "en";
-};
-
-namespace ctrlex {
-	/*sf::Keyboard::Key W = sf::Keyboard::W;
-	sf::Keyboard::Key UP = sf::Keyboard::Up;
-	sf::Keyboard::Key S = sf::Keyboard::S;
-	sf::Keyboard::Key D = sf::Keyboard::A;
-	sf::Keyboard::Key A = sf::Keyboard::D;
-	sf::Keyboard::Key Enter = sf::Keyboard::Enter;
-	sf::Keyboard::Key Backspace = sf::Keyboard::Backspace;
-	sf::Keyboard::Key Esc = sf::Keyboard::Escape;*/
+namespace types {
+	template<typename T>
+	inline String name(T t) {
+		return typeid(t).name();
+	}
 }
 
+namespace logging {
+	void print(LogLevel level, CString from, UInt cnt = 0, ...);
+	void print(exception e);
+}
+
+namespace gui {
+	Boolean button(CString title, ImVec2 size);
+}
+
+/////////////////////// CONFIGS
+namespace conf {
+	static UShort* WINDOW_RESOLUTION = WindowResolutions[1];
+	static Lang LANGUAGE = Lang::EN;
+	
+	//////////////////////////
+	/// AUDIO
+	//////////////////////////
+	static Short SOUND_VOLUME = 25;
+	static Short MUSIC_VOLUME = 25;
+};
+
+/////////////////////// STRING EXTENDER
 namespace strex {
 	String& toLowerCase(String& text);
 	String& toUpperCase(String& text);
@@ -148,6 +168,7 @@ namespace strex {
 	const Boolean toBool(String& text);
 }
 
+/////////////////////// ImGui WINDOW FLAG
 namespace wndflag {
 	static UInt Unscroll = ImGuiWindowFlags_NoScrollbar;
 	static UInt Unmove = ImGuiWindowFlags_NoMove;
@@ -156,6 +177,7 @@ namespace wndflag {
 	static UInt Uncollapse = ImGuiWindowFlags_NoCollapse;
 }
 
+/////////////////////// ImGui TABLE FLAG
 namespace tabflag {
 	static UInt Bordered = ImGuiTableFlags_Borders;
 	static UInt None = ImGuiTableFlags_None;
@@ -195,6 +217,7 @@ namespace tabflag {
 	static UInt SortTristate = ImGuiTableFlags_SortTristate;
 }
 
+/////////////////////// ImGui INPUT TEXT FLAG
 namespace intxtflag {
 	static UInt None = ImGuiInputTextFlags_None;
 	/* Можно вводить 0-9.+- */
@@ -242,9 +265,9 @@ namespace intxtflag {
 	/* ESC очищает всё inputText поле */
 	static UInt EscapeClearsAll = ImGuiInputTextFlags_EscapeClearsAll;
 	/* Шаблон для inputText: пароль */
-	static UInt TemplatePassword = NoHorizontalScroll | NoUndoRedo | Password | Hexadecimal | NoBlank | EnterReturnsTrue | EscapeClearsAll;
+	static UInt TemplatePassword = NoHorizontalScroll | NoUndoRedo | Password | NoBlank | EnterReturnsTrue | EscapeClearsAll;
 	/* Шаблон для inputText: любой текст */
-	static UInt TemplateText = Hexadecimal | EnterReturnsTrue | EscapeClearsAll;
+	static UInt TemplateText = EnterReturnsTrue | EscapeClearsAll;
 }
 
 struct SFMLImageData {
@@ -267,6 +290,7 @@ struct SFMLMusicData {
 	~SFMLMusicData();
 	String& getName();
 	Boolean is(MusicStatus status);
+	void update();
 };
 
 struct SFMLSoundData {
@@ -277,6 +301,8 @@ struct SFMLSoundData {
 	SFMLSoundData(String fullPath);
 	~SFMLSoundData();
 	String& getName();
+	void play();
+	void update();
 };
 
 #endif
